@@ -7,57 +7,173 @@ import java.util.Collections;
 import java.util.Random;
 import java.util.Scanner;
 
-class Node<K extends Comparable<K>, V> {
+class Node23<K extends Comparable<K>, V> {
 	K leftKey, rightKey;
 	V leftValue, rightValue;
 
-	Node<K, V> leftChild, midChild, rightChild;
-	Node<K, V> parent; 
+	Node23<K, V> leftChild, midChild, rightChild;
+	Node23<K, V> parent;
 
-	int keyCount;
-	int size; int depth;
+	int N;
 
-	public Node(K key, V value) {
-		this.leftKey = key; this.leftValue = value;
-		this.keyCount = 1; this.size = 1;
+	boolean is2Node() { return rightKey == null; }
+	boolean is3Node() { return rightKey != null; }
+	boolean isLeaf() { return leftChild == null; }
+
+	public Node23(K key, V value) {
+		this.leftKey = key; this.leftValue = value; N = 1;
 	}
 }
 
+
+
 class Tree23<K extends Comparable<K>, V> {
-	Node<K, V> root;
+	private Node23<K, V> root;
 
-	private Node<K, V> search(Node<K, V> cur, K key) {
-		if (cur == null) return null;
-		
-		int cmpLeft = key.compareTo(cur.leftKey);
+	public int size() { return root == null ? 0 : root.N; }
 
-		if (cmpLeft == 0) return cur;
-		else if (cur.leftChild == null && cur.midChild == null) return cur;
-		else if (cmpLeft < 0) return search(cur.leftChild, key);
-		else {
-			if (cur.rightKey != null) {
-				int cmpRight = key.compareTo(cur.rightKey);
-				if (cmpRight == 0) return cur;
-				else if (cmpRight < 0) return search(cur.midChild, key);
-				else return search(cur.rightChild, key);
-			}
-			else return search(cur.midChild, key);
-		}
+	public int depth() { return depth(root); }
+	private int depth(Node23<K, V> x) {
+		if (x == null) return 0;
+		return 1 + depth(x.leftChild);
 	}
 
-	public boolean contains(K key) {
-		Node<K, V> node = search(root, key);
-		if (node == null) return false;
-		else return key.equals(node.leftKey) || (node.rightKey != null && key.equals(node.rightKey));
-	}
+	public boolean contains(K key) { return get(key) != null; }
 
 	public V get(K key) {
-		Node<K, V> node = search(root, key);
-		if (node == null) return null;
-		else if (key.equals(node.leftKey)) return node.leftValue;
-		else if (node.rightKey != null && key.equals(node.rightKey)) return node.rightValue;
+		if (root == null) return null;
+		Node23<K, V> x = search(root, key);
+		if (x == null) return null;
+
+		if (key.equals(x.leftKey)) return x.leftValue;
+		else if (x.is3Node() && key.equals(x.rightKey)) return x.rightValue;
 		else return null;
 	}
+
+	private Node23<K, V> search(Node23<K, V> x, K key) {
+		while(x != null) {
+			int cmpLeft = key.compareTo(x.leftKey);
+
+			if (cmpLeft == 0 || x.isLeaf()) return x;
+
+			if (cmpLeft < 0) { x = x.leftChild; continue;}
+
+			if (x.is3Node()) {
+				int cmpRight = key.compareTo(x.rightKey);
+				if (cmpRight == 0) return x;
+				x = cmpRight < 0 ? x.midChild : x.rightChild;
+			}
+			else x = x.midChild;
+		}
+		return null;
+	}
+
+
+
+	public void put(K key, V value) {
+		if (root == null) { root = new Node23<>(key, value); return; }
+
+		Node23<K, V> leaf = search(root, key);
+
+		if (key.equals(leaf.leftKey)) { leaf.leftValue = value; return; }
+		else if (leaf.is3Node() && key.equals(leaf.rightKey)) { leaf.rightValue = value; return; }
+
+		splitUp(leaf, key, value, null);
+	}
+
+	private void splitUp(Node23<K, V> x, K key, V value, Node23<K, V> rightChild) {
+		if (x.is2Node()) {
+			addToNode(x, key, value, rightChild);
+			recalcN(x);
+			return;
+		}
+
+		K smallKey, midKey, largeKey; V smallValue, midValue, largeValue;
+		Node23<K, V> farLeftChild, midLeftChild, midRightChild, farRightChild;
+
+		if (key.compareTo(x.leftKey) < 0) {
+			smallKey = key; smallValue = value;
+			midKey = x.leftKey; midValue = x.leftValue;
+			largeKey = x.rightKey; largeValue = x.rightValue;
+			farLeftChild = rightChild; midLeftChild = x.leftChild;
+			midRightChild = x.midChild; farRightChild = x.rightChild;
+		}
+		else if (key.compareTo(x.rightKey) < 0) {
+			smallKey = x.leftKey; smallValue = x.leftValue;
+			midKey = key; midValue = value;
+			largeKey = x.rightKey; largeValue = x.rightValue; 
+			farLeftChild = x.leftChild; midLeftChild = rightChild;
+			midRightChild = x.midChild; farRightChild = x.rightChild;
+		}
+		else {
+			smallKey = x.leftKey; smallValue = x.leftValue;
+			midKey = x.rightKey; midValue = x.rightValue;
+			largeKey = key; largeValue = value;
+			farLeftChild = x.leftChild; midLeftChild = x.midChild;
+			midRightChild = rightChild; farRightChild = x.rightChild;
+		}
+
+		x.leftKey = smallKey; x.leftValue = smallValue;
+		x.rightKey = null; x.rightValue = null;
+		x.leftChild = farLeftChild; x.midChild = midLeftChild; x.rightChild = null;
+		if (farLeftChild != null) farLeftChild.parent = x;
+		if (midLeftChild != null) midLeftChild.parent = x;
+		updateN(x);
+
+		Node23<K, V> newRight = new Node23<>(largeKey, largeValue);
+		newRight.leftChild = midRightChild; newRight.midChild = farRightChild;
+		newRight.parent = x.parent;
+		if (midRightChild != null) midRightChild.parent = newRight;
+		if (farRightChild != null) farRightChild.parent = newRight;
+		updateN(newRight);
+
+		if (x == root) {
+			Node23<K, V> newRoot = new Node23<>(midKey, midValue);
+			newRoot.leftChild = x; newRoot.midChild = newRight;
+			x.parent = newRoot; newRight.parent = newRoot;
+			root = newRoot;
+			recalcN(x);
+			return;
+		}
+		splitUp(x.parent, midKey, midValue, newRight);
+	}
+
+	private void addToNode(Node23<K, V> x, K key, V value, Node23<K, V> rightChild) {
+		if (key.compareTo(x.leftKey) < 0) {
+			x.rightKey = x.leftKey; x.rightValue = x.leftValue;
+			x.leftKey = key; x.leftValue = value;
+			x.rightChild = x.midChild; x.midChild = x.leftChild; x.leftChild = rightChild;
+		}
+		else {
+			x.rightKey = key; x.rightValue = value;
+			x.rightChild = rightChild;
+		}
+		if (rightChild != null) rightChild.parent = x;
+	}
+
+	private void updateN(Node23<K, V> x) {
+		if (x == null) return;
+
+		int count = (x.is3Node() ? 2 : 1);
+		if (x.leftChild != null) count += x.leftChild.N;
+		if (x.midChild != null) count += x.midChild.N;
+		if (x.rightChild != null) count += x.rightChild.N;
+		x.N = count;
+	}
+
+	private void recalcN(Node23<K, V> x) {
+		if (x == null) return;
+
+		int count = (x.is3Node() ? 2 : 1);
+		if (x.leftChild != null) count += x.leftChild.N;
+		if (x.midChild != null) count += x.midChild.N;
+		if (x.rightChild != null) count += x.rightChild.N;
+		
+		x.N = count;
+		recalcN(x.parent);
+	}
+
+
 
 	public Iterable<K> keys() {
 		if (root == null) return null;
@@ -66,7 +182,7 @@ class Tree23<K extends Comparable<K>, V> {
 		return keyList;
 	}
 
-	private void inorder(Node<K,V> x, ArrayList<K> keyList) {
+	private void inorder(Node23<K,V> x, ArrayList<K> keyList) {
 		if (x != null) {
 			inorder(x.leftChild, keyList);
 			keyList.add(x.leftKey);
@@ -77,118 +193,7 @@ class Tree23<K extends Comparable<K>, V> {
 			}
 		}
 	}
-
-
-
-	public void put(K key, V value) {
-		if (root == null) {
-			root = new Node<>(key, value);
-			root.depth = 1;
-			return;
-		}
-		Node<K, V> target = search(root, key);
-
-		if(key.equals(target.leftKey)) target.leftValue = value;
-		else if(target.rightKey != null && key.equals(target.rightKey)) target.rightValue = value;
-		else {
-			insertAndSplit(target, key, value);
-			updateSizeDepth(target, 0);
-		}
-	}
-
-	private void insertAndSplit(Node<K, V> node, K key, V value) {
-		K upKey = key; V upVal = value;
-		Node<K, V> childL = null; Node<K, V> childR = null;
-		Node<K, V> cur = node;
-
-		while (cur != null) {
-			if (cur.keyCount == 1) {
-				if (upKey.compareTo(cur.leftKey) < 0) {
-					cur.rightKey = cur.leftKey; cur.rightValue = cur.leftValue;
-					cur.leftKey = upKey; cur.leftValue = upVal;
-					if (childL != null) {
-						cur.rightChild = cur.midChild; cur.midChild = childR; cur.leftChild = childL;
-						childL.parent = cur; childR.parent = cur;
-					}
-				} 
-				else {
-					cur.rightKey = upKey; cur.rightValue = upVal;
-					if (childL != null) {
-						cur.midChild = childL; cur.rightChild = childR;
-						childL.parent = cur; childR.parent = cur;
-					}
-				}
-				cur.keyCount = 2;
-				return;
-			}
-
-			Node<K, V> newR = new Node<>(null, null);
-			K midKey; V midValue;
-
-			if (upKey.compareTo(cur.leftKey) < 0) {
-				midKey = cur.leftKey; midValue = cur.leftValue;
-				newR.leftKey = cur.rightKey; newR.leftValue = cur.rightValue;
-				newR.leftChild = cur.midChild; newR.midChild = cur.rightChild;
-				cur.leftKey = upKey; cur.leftValue = upVal;
-				cur.leftChild = childL; cur.midChild = childR;
-			} 
-			else if (upKey.compareTo(cur.rightKey) < 0) {
-				midKey = upKey; midValue = upVal;
-				newR.leftKey = cur.rightKey; newR.leftValue = cur.rightValue;
-				newR.leftChild = childR; newR.midChild = cur.rightChild;
-				cur.midChild = childL;
-			} 
-			else {
-				midKey = cur.rightKey; midValue = cur.rightValue;
-				newR.leftKey = upKey; newR.leftValue = upVal;
-				newR.leftChild = cur.rightChild; newR.midChild = childL; 
-				newR.midChild = childR;
-			}
-
-			cur.rightKey = null; cur.rightValue = null; cur.rightChild = null; cur.keyCount = 1;
-			newR.keyCount = 1;
-
-			if (cur.leftChild != null) { cur.leftChild.parent = cur; cur.midChild.parent = cur; }
-			if (newR.leftChild != null) { newR.leftChild.parent = newR; newR.midChild.parent = newR; }
-
-			cur.size = cur.keyCount + (cur.leftChild != null ? cur.leftChild.size : 0) + (cur.midChild != null ? cur.midChild.size : 0);
-			cur.depth = (cur.leftChild != null ? cur.leftChild.depth : 0) + 1;
-
-			newR.size = newR.keyCount + (newR.leftChild != null ? newR.leftChild.size : 0) + (newR.midChild != null ? newR.midChild.size : 0);
-			newR.depth = (newR.leftChild != null ? newR.leftChild.depth : 0) + 1;
-
-			if (cur.parent == null) { 
-				root = new Node<>(midKey, midValue);
-				root.leftChild = cur; root.midChild = newR;
-				cur.parent = root; newR.parent = root;
-				return;
-			}
-			
-			upKey = midKey; upVal = midValue; childL = cur; childR = newR;
-			cur = cur.parent;
-		}
-	}
-
-
-	public void updateSizeDepth(Node<K, V> node, int pm) {
-		Node<K, V> cur = node;
-		while (cur != null) {
-            int newSize = cur.keyCount;
-            int maxD = 0;
-            if (cur.leftChild != null) { newSize += cur.leftChild.size; maxD = Math.max(maxD, cur.leftChild.depth); }
-            if (cur.midChild != null) { newSize += cur.midChild.size; maxD = Math.max(maxD, cur.midChild.depth); }
-            if (cur.rightChild != null) { newSize += cur.rightChild.size; maxD = Math.max(maxD, cur.rightChild.depth); }
-            
-            cur.size = newSize;
-            cur.depth = maxD + 1;
-            cur = cur.parent;
-        }
-	}
-	
-	public int size() { return root.size; }
-	public int depth() { return root.depth; }
 }
-
 
 public class HW2 {
 
