@@ -29,8 +29,9 @@ class Node23<K extends Comparable<K>, V> {
 
 class Tree23<K extends Comparable<K>, V> {
 	private Node23<K, V> root;
+	private int N = 0;
 
-	public int size() { return root == null ? 0 : root.N; }
+	public int size() { return N; }
 
 	public int depth() { return depth(root); }
 	private int depth(Node23<K, V> x) {
@@ -51,24 +52,29 @@ class Tree23<K extends Comparable<K>, V> {
 	}
 
 	private Node23<K, V> search(Node23<K, V> x, K key) {
-		while(x != null) {
+		if (x == null) return null;
+
+		while(true) {
 			int cmpLeft = key.compareTo(x.leftKey);
 
-			if (cmpLeft == 0 || x.isLeaf()) return x;
-
-			if (cmpLeft < 0) { x = x.leftChild; continue;}
+			if (cmpLeft == 0) return x;
 
 			if (x.is3Node()) {
 				int cmpRight = key.compareTo(x.rightKey);
 				if (cmpRight == 0) return x;
-				x = cmpRight < 0 ? x.midChild : x.rightChild;
+				if (x.isLeaf()) return x;
+
+				if (cmpLeft < 0) x = x.leftChild;
+				else if (cmpRight < 0) x = x.midChild;
+				else x = x.rightChild;
 			}
-			else x = x.midChild;
+			else {
+				if (x.isLeaf()) return x;
+				if (cmpLeft < 0) x = x.leftChild;
+				else x = x.midChild;
+			}
 		}
-		return null;
 	}
-
-
 
 	public void put(K key, V value) {
 		if (root == null) { root = new Node23<>(key, value); return; }
@@ -78,13 +84,12 @@ class Tree23<K extends Comparable<K>, V> {
 		if (key.equals(leaf.leftKey)) { leaf.leftValue = value; return; }
 		else if (leaf.is3Node() && key.equals(leaf.rightKey)) { leaf.rightValue = value; return; }
 
-		splitUp(leaf, key, value, null);
+		splitUp(leaf, key, value, null); N++;
 	}
 
 	private void splitUp(Node23<K, V> x, K key, V value, Node23<K, V> newRightChild) {
 		if (x.is2Node()) {
 			addToNode(x, key, value, newRightChild);
-			recalcN(x);
 			return;
 		}
 
@@ -95,22 +100,22 @@ class Tree23<K extends Comparable<K>, V> {
 			smallKey = key; smallValue = value;
 			midKey = x.leftKey; midValue = x.leftValue;
 			largeKey = x.rightKey; largeValue = x.rightValue;
-			farLeftChild = newRightChild; midLeftChild = x.leftChild;
-			midRightChild = x.midChild; farRightChild = x.rightChild;
+			farLeftChild = x.leftChild; midLeftChild = newRightChild;
+            midRightChild = x.midChild; farRightChild = x.rightChild;
 		}
 		else if (key.compareTo(x.rightKey) < 0) {
 			smallKey = x.leftKey; smallValue = x.leftValue;
 			midKey = key; midValue = value;
 			largeKey = x.rightKey; largeValue = x.rightValue; 
-			farLeftChild = x.leftChild; midLeftChild = newRightChild;
-			midRightChild = x.midChild; farRightChild = x.rightChild;
+			farLeftChild = x.leftChild; midLeftChild = x.midChild;
+            midRightChild = newRightChild; farRightChild = x.rightChild;
 		}
 		else {
 			smallKey = x.leftKey; smallValue = x.leftValue;
 			midKey = x.rightKey; midValue = x.rightValue;
 			largeKey = key; largeValue = value;
 			farLeftChild = x.leftChild; midLeftChild = x.midChild;
-			midRightChild = newRightChild; farRightChild = x.rightChild;
+            midRightChild = x.rightChild; farRightChild = newRightChild;
 		}
 
 		x.leftKey = smallKey; x.leftValue = smallValue;
@@ -118,21 +123,18 @@ class Tree23<K extends Comparable<K>, V> {
 		x.leftChild = farLeftChild; x.midChild = midLeftChild; x.rightChild = null;
 		if (farLeftChild != null) farLeftChild.parent = x;
 		if (midLeftChild != null) midLeftChild.parent = x;
-		recalcN(x);
 
 		Node23<K, V> newRight = new Node23<>(largeKey, largeValue);
 		newRight.leftChild = midRightChild; newRight.midChild = farRightChild;
 		newRight.parent = x.parent;
 		if (midRightChild != null) midRightChild.parent = newRight;
 		if (farRightChild != null) farRightChild.parent = newRight;
-		recalcN(newRight);
 
 		if (x == root) {
 			Node23<K, V> newRoot = new Node23<>(midKey, midValue);
 			newRoot.leftChild = x; newRoot.midChild = newRight;
 			x.parent = newRoot; newRight.parent = newRoot;
 			root = newRoot;
-			recalcN(x);
 			return;
 		}
 		splitUp(x.parent, midKey, midValue, newRight);
@@ -150,19 +152,6 @@ class Tree23<K extends Comparable<K>, V> {
 		}
 		if (newRightChild != null) newRightChild.parent = x;
 	}
-
-	private void recalcN(Node23<K, V> x) {
-		if (x == null) return;
-
-		int count = (x.is3Node() ? 2 : 1);
-		if (x.leftChild != null) count += x.leftChild.N;
-		if (x.midChild != null) count += x.midChild.N;
-		if (x.rightChild != null) count += x.rightChild.N;
-		
-		x.N = count;
-		recalcN(x.parent);
-	}
-
 
 
 	public Iterable<K> keys() {

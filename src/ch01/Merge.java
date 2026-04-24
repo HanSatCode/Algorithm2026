@@ -1,26 +1,24 @@
 package ch01;
 
-public class Merge {
-	public static void merge(int[] a, int[] aux, int lo, int mid, int hi) {
-		
-		for(int k = lo; k <= hi; k++) aux[k] = a[k];
-		
-		int i = lo, j = mid + 1;
-		for(int k = lo; k <= hi; k++) {
-			if(i > mid) a[k] = aux[j++];
-			else if (j > hi) a[k] = aux[i++];
-			else if (aux[i] > aux[j]) a[k] = aux[j++];
-			else a[k] = aux[i++];
-		}
-	}
-	
-	public static void main(String[] args) {
-		int[] a = { 1, 2, 3, 9, 2, 3, 4, 5 };
-		int[] temp = new int[a.length];
-		
-		merge(a, temp, 0, 3, a.length - 1);
-		for(int i = 0; i < a.length; i++) {
-			System.out.print(a[i] + " ");
-		}
-	}
+import ch01.abstractSort.AbstractSort;
+
+public class Merge extends AbstractSort {
+    public static void sort(Comparable[] a, Comparable[] aux, int lo, int mid, int hi) {
+        for (int k = lo; k <= hi; k++) aux[k] = a[k];
+
+        int i = lo; int j = mid + 1;
+        for(int k = lo; k <= hi; k++) {
+            if (i > mid) a[k] = aux[j++];
+            else if (j > hi) a[k] = aux[i++];
+            else if (less(aux[i], aux[j])) a[k] = aux[i++];
+            else a[k] = aux[j++];
+        }
+    }
+
+    public static void main(String[] args) {
+        String[] a = { "A", "G", "L", "O", "R", "H", "I", "M", "S", "T"};
+        String[] aux = new String[10];
+        Merge.sort(a, aux, 0, 5, 9);
+        Merge.show(a);
+    }
 }
