@@ -1,28 +1,21 @@
+// 22212014 한석희
 package homework.ch0506; // 제출할 때 지우기
 
 import java.util.*;
 
-
 public class ch0506_04 {
-    public int N = 0;
-    static public int solve(int N, int cnt) {
-        if (N == 0) {
-            return cnt;
-        }
-        else {
-        if(N % 5 == 0) return solve(N / 5, cnt + 1);
-        if(N % 3 == 0) return solve(N / 3, cnt + 1);
-        if(N % 2 == 0) return solve(N /2, cnt + 1);
-        return solve(N - 1, cnt + 1);
-        } 
-    }
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
+        System.out.print("정수 N을 입력하세요! > "); int N = sc.nextInt(); sc.close();
+        
+        int[] dp = new int[N + 1]; for(int i = N; i >= 0; i--) { dp[i] = N - i; }
 
-        System.out.print("정수 N을 입력하세요! > ");
-        int N = sc.nextInt();
-
-        System.out.println(solve(N, 0));   
-
+        for(int i = N; i > 1; i--) {
+            if(i % 5 == 0) dp[i / 5] = Math.min(dp[i / 5], dp[i] + 1);
+            if(i % 3 == 0) dp[i / 3] = Math.min(dp[i / 3], dp[i] + 1);
+            if(i % 2 == 0) dp[i / 2] = Math.min(dp[i / 2], dp[i] + 1);
+            dp[i - 1] = Math.min(dp[i - 1], dp[i] + 1);
+        }
+        System.out.println(dp[1]);
     }
 }
