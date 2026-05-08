@@ -1,5 +1,5 @@
 // 22212014 한석희
-package homework.ch0506; // 제출할 때 지우기
+package homework.ch0506;
 
 import java.util.*;
 
