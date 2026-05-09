@@ -31,10 +31,11 @@ class Solution {
 }
 
 
-public class Ch0506_01 {
+public class HW1 {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        System.out.print("행렬 크기(2의 거듭제곱)를 입력해주세요. > "); int n = sc.nextInt();
+        System.out.println("[디버깅용 Main 함수입니다.]");
+        System.out.print("행렬 크기(2의 거듭제곱 / N x N)를 입력해주세요. > "); int n = sc.nextInt();
         
         int[][] arr = new int[n][n];
         System.out.println(n + "x" + n + " 행렬을 아래에 입력해주세요.");

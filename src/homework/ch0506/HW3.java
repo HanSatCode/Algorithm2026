@@ -29,9 +29,10 @@ class Solution {
     }
 }
 
-public class Ch0506_03 {
+public class HW3 {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
+        System.out.println("[디버깅용 Main 함수입니다.]");
         ArrayList<int[]> triangle = new ArrayList<>();
         for(int i = 0; i < 500; i++) {
             System.out.print("삼각형의 " + i + "번째 줄의 원소를 입력하세요. (" + (i + 1) + "개의 원소를 공백으로 구분할 것! 종료는 -1) > ");
@@ -44,7 +45,7 @@ public class Ch0506_03 {
         }
         sc.close();
         Solution sol = new Solution();
-        int result = sol.solution(triangle.toArray(new int[0][]));
+        int result = sol.solution(triangle.toArray(new int[triangle.size()][]));
         System.out.println(result);
     }
 }
