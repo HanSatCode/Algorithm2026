@@ -1,4 +1,5 @@
-package homework.ch07;
+// 22212014 한석희
+package homework.ch07; // 제출할 때 지우기
 
 import java.util.*;
 
@@ -22,17 +23,18 @@ class Solution {
     }
 }
 
-public class Ch07_HW1 {
+public class HW1 {
     public static void main(String[] args) {
-        System.out.println("[디버깅용 main 함수입니다.]");
+        System.out.println("[테스트용 main 함수입니다.]");
+        Scanner sc = new Scanner(System.in);
+        Solution solve = new Solution();
         while(true) {
-            Scanner sc = new Scanner(System.in);
             System.out.print("S(number) 값을 입력해주세요! (종료는 -1) : "); String S = sc.next();
             if (S.equals("-1")) break;
             System.out.print("k 값을 입력해주세요! : "); int k = sc.nextInt();
 
-            Solution solve = new Solution();
             System.out.println(">>> 정답은 " + solve.solution(S, k) + " 입니다.");
         }
+        sc.close();
     }
 }
