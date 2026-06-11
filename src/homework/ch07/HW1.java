@@ -6,18 +6,21 @@ import java.util.*;
 class Solution {
     public String solution(String number, int k) {
         String answer = "";
-        String[] list = number.split("");
 
-        for(int i = 1; i < list.length && k > 0; i++) {
-            for(int j = 0; j < i && k > 0; j++) {
-                if(list[j].equals("")) continue;
-                if(list[j].compareTo(list[i]) < 0) {
-                    list[j] = ""; k--;
-                }
+        Deque<Character> deque = new ArrayDeque<>();
+        for (char c : number.toCharArray()) {
+            while(k > 0 && !deque.isEmpty() && deque.peekLast() < c) {
+                deque.pollLast(); k--;
             }
+            deque.addLast(c);
         }
-        if (k == 0) answer = String.join("", list);
-        else answer = String.join("", Arrays.copyOfRange(list, 0, list.length - k));
+
+        int size = deque.size();
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < size - k; i++) {
+            sb.append(deque.pollFirst());
+        }
+        answer = sb.toString();
 
         return answer;
     }
