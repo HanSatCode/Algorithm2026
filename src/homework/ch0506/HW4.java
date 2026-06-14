@@ -8,14 +8,15 @@ public class HW4 {
         Scanner sc = new Scanner(System.in);
         System.out.print("정수 N을 입력하세요! > "); int N = sc.nextInt(); sc.close();
         
-        int[] dp = new int[N + 1]; for(int i = N; i >= 0; i--) { dp[i] = N - i; }
+        int[] dp = new int[N + 1];
+        for(int i = 1; i <= N; i++) { dp[i] = i - 1; }
 
-        for(int i = N; i > 1; i--) {
-            if(i % 5 == 0) dp[i / 5] = Math.min(dp[i / 5], dp[i] + 1);
-            if(i % 3 == 0) dp[i / 3] = Math.min(dp[i / 3], dp[i] + 1);
-            if(i % 2 == 0) dp[i / 2] = Math.min(dp[i / 2], dp[i] + 1);
-            dp[i - 1] = Math.min(dp[i - 1], dp[i] + 1);
+        for(int i = 2; i <= N; i++) {
+            if (i % 5 == 0) dp[i] = Math.min(dp[i], dp[i / 5] + 1);
+            if (i % 3 == 0) dp[i] = Math.min(dp[i], dp[i / 3] + 1);
+            if (i % 2 == 0) dp[i] = Math.min(dp[i], dp[i / 2] + 1);
+            dp[i] = Math.min(dp[i], dp[i - 1] + 1);
         }
-        System.out.println(dp[1]);
+        System.out.println(dp[N]);
     }
 }

@@ -1,28 +1,24 @@
-// 22212014 한석희
+// 222121014 한석희
 package homework.ch07; // 제출할 때 지우기
 
 import java.util.*;
 
 class Solution {
-    public String solution(String number, int k) {
-        String answer = "";
+    public String solve(String number, int k) {
+        char[] num = number.toCharArray();
+        Deque<Character> array = new ArrayDeque<>(); array.addLast(num[0]);
 
-        Deque<Character> deque = new ArrayDeque<>();
-        for (char c : number.toCharArray()) {
-            while(k > 0 && !deque.isEmpty() && deque.peekLast() < c) {
-                deque.pollLast(); k--;
-            }
-            deque.addLast(c);
+        for(int i = 1; i < num.length; i++) {
+            char cur = num[i];
+            while(k > 0 && array.size() > 0 && cur > array.getLast()) { array.pollLast(); k--; }
+            array.addLast(cur);
         }
 
-        int size = deque.size();
+        int size = array.size();
         StringBuilder sb = new StringBuilder();
-        for(int i = 0; i < size - k; i++) {
-            sb.append(deque.pollFirst());
-        }
-        answer = sb.toString();
+        if (k != 0) for(int i = 0; i < size - k; i++) { sb.append(array.pollFirst()); }
 
-        return answer;
+        return sb.toString();
     }
 }
 
@@ -36,7 +32,7 @@ public class HW1 {
             if (S.equals("-1")) break;
             System.out.print("k 값을 입력해주세요! : "); int k = sc.nextInt();
 
-            System.out.println(">>> 정답은 " + solve.solution(S, k) + " 입니다.");
+            System.out.println(">>> 정답은 " + solve.solve(S, k) + " 입니다.");
         }
         sc.close();
     }
